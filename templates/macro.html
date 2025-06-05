@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Macro View – Recycling in NYC</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    svg text {
+      font-family: sans-serif;
+    }
+  </style>
+</head>
+<body class="p-4">
+  <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">NYC Recycling Project</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link active" href="/macro">Macro View</a></li>
+          <li class="nav-item"><a class="nav-link" href="/borough/BKN">Brooklyn</a></li>
+          <li class="nav-item"><a class="nav-link" href="/borough/BX">Bronx</a></li>
+          <li class="nav-item"><a class="nav-link" href="/borough/MAN">Manhattan</a></li>
+          <li class="nav-item"><a class="nav-link" href="/borough/QE">Queens</a></li>
+          <li class="nav-item"><a class="nav-link" href="/borough/SI">Staten Island</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <h1>Total Recycling Bins by Borough</h1>
+
+  <svg width="700" height="300">
+  {% for item in data %}
+    <rect 
+      x="{{ loop.index0 * 100 + 40 }}" 
+      y="{{ 280 - item['total_bins'] * 2 }}" 
+      width="50" 
+      height="{{ item['total_bins'] * 2 }}" 
+      fill="seagreen" />
+    
+    <text 
+      x="{{ loop.index0 * 100 + 45 }}" 
+      y="295" 
+      font-size="10">
+      {{ item['borough'] }}
+    </text>
+
+    <text 
+      x="{{ loop.index0 * 100 + 40 }}" 
+      y="{{ 270 - item['total_bins'] * 2 }}" 
+      font-size="10" 
+      fill="black">
+      {{ item['total_bins'] }}
+    </text>
+  {% endfor %}
+  </svg>
+
+  <div class="mt-4">
+    <h3>Key Takeaways</h3>
+    <ul>
+      <li>Brooklyn and Manhattan have the highest number of recycling bins.</li>
+      <li>Queens and Staten Island show lower bin coverage relative to population density.</li>
+      <li>The Bronx shows diverse site types, but fewer bins overall.</li>
+    </ul>
+  </div>
+
+  <footer class="mt-5">
+    <p>Sources: NYC Open Data – DSNY Public Recycling Bins</p>
+    <p>Project by Sanaii Wilks</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ borough }} Recycling Details</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    .bar {
+      shape-rendering: crispEdges;
+    }
+    .label {
+      font-size: 12px;
+      font-family: sans-serif;
+      text-anchor: middle;
+    }
+    .axis-label {
+      font-size: 14px;
+      font-family: sans-serif;
+      font-weight: bold;
+    }
+    .y-axis-label {
+      font-size: 12px;
+      font-family: sans-serif;
+    }
+  </style>
+</head>
+<body class="p-4">
+  <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/">NYC Recycling Project</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item"><a class="nav-link" href="/macro">Macro View</a></li>
+          <li class="nav-item"><a class="nav-link" href="/borough/BKN">Brooklyn</a></li>
+          <li class="nav-item"><a class="nav-link" href="/borough/BX">Bronx</a></li>
+          <li class="nav-item"><a class="nav-link" href="/borough/MAN">Manhattan</a></li>
+          <li class="nav-item"><a class="nav-link" href="/borough/QE">Queens</a></li>
+          <li class="nav-item"><a class="nav-link" href="/borough/SI">Staten Island</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <h1>Recycling Bins Detail for {{ borough }}</h1>
+
+  {% if data %}
+    {% set max_bins = data | map(attribute='total_bins') | max %}
+    {% set chart_height = 300 %}
+    {% set chart_width = (data|length) * 70 + 100 %}
+    {% set bar_width = 15 %}
+    {% set bar_gap = 5 %}
+    {% set group_gap = 20 %}
+
+    <svg width="{{ chart_width }}" height="{{ chart_height + 60 }}" aria-label="Bar chart showing recycling bins by site type">
+
+      <!-- Y-axis lines and labels -->
+      {% set step = max_bins // 5 if max_bins >= 5 else 1 %}
+      {% for y_value in range(0, max_bins + 1, step) %}
+        {% set y_pos = chart_height - (y_value / max_bins) * chart_height %}
+        <!-- horizontal grid line -->
+        <line x1="50" y1="{{ y_pos }}" x2="{{ chart_width - 20 }}" y2="{{ y_pos }}" stroke="#ccc" stroke-dasharray="3 3" />
+        <!-- y-axis label -->
+        <text x="45" y="{{ y_pos + 5 }}" class="y-axis-label" text-anchor="end">{{ y_value }}</text>
+      {% endfor %}
+
+      <!-- Bars -->
+      {% for item in data %}
+        {% set group_x = 60 + loop.index0 * (3 * (bar_width + bar_gap) + group_gap) %}
+        {% set paper_height = (item.paper_bins / max_bins) * chart_height %}
+        {% set mgp_height = (item.mgp_bins / max_bins) * chart_height %}
+        {% set total_height = (item.total_bins / max_bins) * chart_height %}
+
+        <!-- Paper Bar -->
+        <rect x="{{ group_x }}" y="{{ chart_height - paper_height }}" width="{{ bar_width }}" height="{{ paper_height }}" fill="steelblue" />
+        <text x="{{ group_x + bar_width / 2 }}" y="{{ chart_height - paper_height - 5 }}" class="label" fill="steelblue">{{ item.paper_bins }}</text>
+
+        <!-- MGP Bar -->
+        <rect x="{{ group_x + bar_width + bar_gap }}" y="{{ chart_height - mgp_height }}" width="{{ bar_width }}" height="{{ mgp_height }}" fill="orange" />
+        <text x="{{ group_x + 1.5 * bar_width + bar_gap }}" y="{{ chart_height - mgp_height - 5 }}" class="label" fill="orange">{{ item.mgp_bins }}</text>
+
+        <!-- Total Bar -->
+        <rect x="{{ group_x + 2 * (bar_width + bar_gap) }}" y="{{ chart_height - total_height }}" width="{{ bar_width }}" height="{{ total_height }}" fill="seagreen" />
+        <text x="{{ group_x + 2.5 * bar_width + 2 * bar_gap }}" y="{{ chart_height - total_height - 5 }}" class="label" fill="seagreen">{{ item.total_bins }}</text>
+
+        <!-- Site Type Label -->
+        <text x="{{ group_x + 1.5 * (bar_width + bar_gap) }}" y="{{ chart_height + 20 }}" class="label" transform="rotate(45, {{ group_x + 1.5 * (bar_width + bar_gap) }}, {{ chart_height + 20 }})">
+          {{ item.site_type }}
+        </text>
+      {% endfor %}
+
+      <!-- Axis labels -->
+      <text x="{{ chart_width / 2 }}" y="{{ chart_height + 50 }}" class="axis-label">Site Type</text>
+      <text x="15" y="{{ chart_height / 2 }}" class="axis-label" transform="rotate(-90 15,{{ chart_height / 2 }})">Number of Bins</text>
+
+      <!-- Legend -->
+      <rect x="{{ chart_width - 200 }}" y="10" width="15" height="15" fill="steelblue" />
+      <text x="{{ chart_width - 180 }}" y="22" class="label">Paper Bins</text>
+
+      <rect x="{{ chart_width - 200 }}" y="35" width="15" height="15" fill="orange" />
+      <text x="{{ chart_width - 180 }}" y="47" class="label">MGP Bins</text>
+
+      <rect x="{{ chart_width - 200 }}" y="60" width="15" height="15" fill="seagreen" />
+      <text x="{{ chart_width - 180 }}" y="72" class="label">Total Bins</text>
+    </svg>
+
+    <!-- Detailed Table -->
+    <table class="table table-striped mt-4">
+      <thead>
+        <tr>
+          <th>Site Type</th>
+          <th>Paper Bins</th>
+          <th>MGP Bins</th>
+          <th>Total Bins</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in data %}
+        <tr>
+          <td>{{ item.site_type }}</td>
+          <td>{{ item.paper_bins }}</td>
+          <td>{{ item.mgp_bins }}</td>
+          <td>{{ item.total_bins }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  {% else %}
+    <p>No data found for this borough.</p>
+  {% endif %}
+
+  <footer class="mt-5">
+    <p><a href="/macro">← Back to Macro View</a></p>
+    <p>Sources: NYC Open Data – DSNY Public Recycling Bins</p>
+    <p>Project by Sanaii Wilks</p>
+  </footer>
+</body>
+</html>
+
+
+

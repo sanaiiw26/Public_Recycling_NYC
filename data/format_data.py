@@ -1,22 +1,33 @@
-# format_data.py
-
+#format_data.py
 import csv
 import json
+from collections import defaultdict
 
-input_file = 'data/cleansed_recycling_data.csv'
-output_file = 'data/data.json'
+input_csv = 'data/cleansed_recycling_data.csv'
+output_json = 'data/data.json'
 
-def csv_to_json(csv_path, json_path):
-    data = []
+borough_bins = defaultdict(int)
 
-    with open(csv_path, mode='r', encoding='utf-8') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            data.append(row)
+with open(input_csv, newline='') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        try:
+            paper = int(row.get('Paper Bins', 0))
+            mgp = int(row.get('MGP Bins', 0))
+        except ValueError:
+            paper = 0
+            mgp = 0
 
-    with open(json_path, mode='w', encoding='utf-8') as jsonfile:
-        json.dump(data, jsonfile, indent=4)
+        total = paper + mgp
+        borough = row.get('DSNY Zone', 'Unknown')
+        borough_bins[borough] += total
 
-if __name__ == "__main__":
-    csv_to_json(input_file, output_file)
-    print(f"Converted {input_file} to {output_file}")
+data = [
+    {'borough': boro, 'total_bins': total}
+    for boro, total in borough_bins.items()
+]
+
+with open(output_json, 'w') as jsonfile:
+    json.dump(data, jsonfile, indent=2)
+
+print("✅ data.json successfully created.")
